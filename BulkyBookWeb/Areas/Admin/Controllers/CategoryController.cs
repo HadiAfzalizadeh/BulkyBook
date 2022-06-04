@@ -1,22 +1,24 @@
 ﻿using BulkyBook.DataAccess;
+using BulkyBook.DataAccess.Repository.IRepository;
 using BulkyBook.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BulkyBookWeb.Controllers
-{
+namespace BulkyBookWeb.Controllers;
+[Area("Admin")]
+
     public class CategoryController : Controller
     {
 
-        private readonly ApplicationDbContxt _db;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CategoryController(ApplicationDbContxt db)
+        public CategoryController(IUnitOfWork unitOfWork)
         {
-            _db = db;
+            _unitOfWork = unitOfWork;
         }
 
         public IActionResult Index()
         {
-            IEnumerable<Category> objCategoryList = _db.Categories;
+            IEnumerable<Category> objCategoryList = _unitOfWork.Category .GetAll();
             return View(objCategoryList);
         }
 
@@ -38,8 +40,8 @@ namespace BulkyBookWeb.Controllers
             }
             if (ModelState.IsValid)
             {
-                _db.Categories.Add(obj);
-                _db.SaveChanges();
+                _unitOfWork.Category.Add(obj);
+                _unitOfWork.Save();
                 TempData["Success"] = "Category created successfully";
                 return RedirectToAction("Index");
             }
@@ -54,16 +56,16 @@ namespace BulkyBookWeb.Controllers
             {
                 return NotFound();
             }
-            var categorFromDb = _db.Categories.Find(id);
-            var categorFromDbFirst = _db.Categories.FirstOrDefault(u => u.Id == id);
-            var categorFromDbSingle = _db.Categories.SingleOrDefault(u => u.Id == id);
+            //var categorFromDb = _db.Categories.Find(id);
+            var categorFromDbFirst = _unitOfWork.Category.GetFirstOrDefault(u => u.Id == id);
+            //var categorFromDbSingle = _db.Categories.SingleOrDefault(u => u.Id == id);
 
-            if (categorFromDb == null)
+            if (categorFromDbFirst == null)
             {
                 return NotFound();
             }
 
-            return View(categorFromDb);
+            return View(categorFromDbFirst);
         }
 
 
@@ -78,8 +80,8 @@ namespace BulkyBookWeb.Controllers
             }
             if (ModelState.IsValid)
             {
-                _db.Categories.Update(obj);
-                _db.SaveChanges();
+                _unitOfWork.Category.Update(obj);
+                _unitOfWork.Save();
                 TempData["Success"] = "Category Updated successfully";
                 return RedirectToAction("Index");
             }
@@ -93,16 +95,16 @@ namespace BulkyBookWeb.Controllers
             {
                 return NotFound();
             }
-            var categorFromDb = _db.Categories.Find(id);
-            var categorFromDbFirst = _db.Categories.FirstOrDefault(u => u.Id == id);
-            var categorFromDbSingle = _db.Categories.SingleOrDefault(u => u.Id == id);
+            //var categorFromDb = _db.Categories.Find(id);
+            var categorFromDbFirst = _unitOfWork.Category.GetFirstOrDefault(u => u.Id == id);
+            //var categorFromDbSingle = _db.Categories.SingleOrDefault(u => u.Id == id);
 
-            if (categorFromDb == null)
+            if (categorFromDbFirst == null)
             {
                 return NotFound();
             }
 
-            return View(categorFromDb);
+            return View(categorFromDbFirst);
         }
 
 
@@ -111,18 +113,18 @@ namespace BulkyBookWeb.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeletePOST(int? id)
         {
-            var obj = _db.Categories.Find(id);
+            var obj = _unitOfWork.Category.GetFirstOrDefault(u => u.Id == id);
 
             if (obj == null)
             {
                 return NotFound();
             }
 
-            _db.Categories.Remove(obj);
-            _db.SaveChanges();
+            _unitOfWork.Category.Remove(obj);
+            _unitOfWork.Save();
             TempData["Success"] = "Category deleted successfully";
             return RedirectToAction("Index");
         }
 
     }
-}
+
